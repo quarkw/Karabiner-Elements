@@ -10,3 +10,4 @@
 #define kRelaunchWait @"kRelaunchWait"
 #define kDelayBeforeTurnOff @"kDelayBeforeTurnOff"
 #define kDelayBeforeTurnOn @"kDelayBeforeTurnOn"
+#define kPalmSizeBeforeTurnOn @"kPalmSizeBeforeTurnOn"

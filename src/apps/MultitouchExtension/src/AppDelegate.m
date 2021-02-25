@@ -1,6 +1,6 @@
 @import IOKit;
 #import "AppDelegate.h"
-#import "FingerCount.h"
+#import "MTInteractionCount.h"
 #import "FingerStatusManager.h"
 #import "KarabinerKit/KarabinerKit.h"
 #import "MultitouchDeviceManager.h"
@@ -14,16 +14,21 @@
 // C methods
 //
 
-static void setGrabberVariable(FingerCount* count, bool sync) {
+static void setGrabberVariable(MTInteractionCount* count, bool sync) {
   struct {
     int count;
     const char* name;
   } entries[] = {
-      {count.upperHalfAreaCount, "multitouch_extension_finger_count_upper_half_area"},
-      {count.lowerHalfAreaCount, "multitouch_extension_finger_count_lower_half_area"},
-      {count.leftHalfAreaCount, "multitouch_extension_finger_count_left_half_area"},
-      {count.rightHalfAreaCount, "multitouch_extension_finger_count_right_half_area"},
-      {count.totalCount, "multitouch_extension_finger_count_total"},
+      {count.upperHalfAreaFingerCount, "multitouch_extension_finger_count_upper_half_area"},
+      {count.lowerHalfAreaFingerCount, "multitouch_extension_finger_count_lower_half_area"},
+      {count.leftHalfAreaFingerCount, "multitouch_extension_finger_count_left_half_area"},
+      {count.rightHalfAreaFingerCount, "multitouch_extension_finger_count_right_half_area"},
+      {count.totalFingerCount, "multitouch_extension_finger_count_total"},
+      {count.upperHalfAreaPalmCount, "multitouch_extension_palm_count_upper_half_area"},
+      {count.lowerHalfAreaPalmCount, "multitouch_extension_palm_count_lower_half_area"},
+      {count.leftHalfAreaPalmCount, "multitouch_extension_palm_count_left_half_area"},
+      {count.rightHalfAreaPalmCount, "multitouch_extension_palm_count_right_half_area"},
+      {count.totalPalmCount, "multitouch_extension_palm_count_total"},
   };
 
   for (int i = 0; i < sizeof(entries) / sizeof(entries[0]); ++i) {
@@ -47,7 +52,7 @@ static void enable(void) {
 
     [manager setCallback:YES];
 
-    setGrabberVariable([FingerCount new], false);
+    setGrabberVariable([MTInteractionCount new], false);
   });
 }
 
@@ -130,7 +135,7 @@ static void disable(void) {
                              }
 
                              FingerStatusManager* manager = [FingerStatusManager sharedFingerStatusManager];
-                             setGrabberVariable([manager createFingerCount], false);
+                             setGrabberVariable([manager createMTInteractionCount], false);
                            }];
     [self.observers addObserver:o notificationCenter:center];
   }
@@ -163,7 +168,7 @@ static void disable(void) {
 
   [[MultitouchDeviceManager sharedMultitouchDeviceManager] setCallback:NO];
 
-  setGrabberVariable([FingerCount new], true);
+  setGrabberVariable([MTInteractionCount new], true);
 
   libkrbn_terminate();
 }

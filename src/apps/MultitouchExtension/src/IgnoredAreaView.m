@@ -104,20 +104,21 @@
       }
 
       if (e.touchedPhysically) {
-        NSRect rect = NSMakeRect(bounds.size.width * e.point.x - DIAMETER / 2,
-                                 bounds.size.height * e.point.y - DIAMETER / 2,
-                                 DIAMETER,
-                                 DIAMETER);
+        NSRect rect = NSMakeRect(bounds.size.width * e.point.x - DIAMETER * e.size,
+                                 bounds.size.height * e.point.y - DIAMETER * e.size,
+                                 DIAMETER * 2 * e.size,
+                                 DIAMETER * 2 * e.size);
         NSBezierPath* path = [NSBezierPath bezierPathWithOvalInRect:rect];
         [path setLineWidth:2];
         [path stroke];
       }
 
+      const float pressureMultiplier = ( e.pressure - 1000000000.0 ) / 100000000.0;
       if (e.touchedFixed) {
-        NSRect rect = NSMakeRect(bounds.size.width * e.point.x - DIAMETER / 4,
-                                 bounds.size.height * e.point.y - DIAMETER / 4,
-                                 DIAMETER / 2,
-                                 DIAMETER / 2);
+        NSRect rect = NSMakeRect(bounds.size.width * e.point.x - DIAMETER / 2 * pressureMultiplier,
+                                 bounds.size.height * e.point.y - DIAMETER / 2 * pressureMultiplier,
+                                 DIAMETER * pressureMultiplier,
+                                 DIAMETER * pressureMultiplier);
         NSBezierPath* path = [NSBezierPath bezierPathWithOvalInRect:rect];
         [path setLineWidth:1];
         [path stroke];

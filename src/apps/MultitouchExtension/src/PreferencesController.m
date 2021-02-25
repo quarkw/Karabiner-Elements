@@ -24,6 +24,7 @@
       kIgnoredAreaRight : @"0",
       kDelayBeforeTurnOff : @"0",
       kDelayBeforeTurnOn : @"0",
+      kPalmSizeBeforeTurnOn : @"2.0",
     };
     [[NSUserDefaults standardUserDefaults] registerDefaults:dict];
   });

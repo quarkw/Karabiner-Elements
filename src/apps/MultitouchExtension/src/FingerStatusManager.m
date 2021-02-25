@@ -1,8 +1,24 @@
+#import <Cocoa/Cocoa.h>
 #import "FingerStatusManager.h"
 #import "NotificationKeys.h"
 #import "PreferencesController.h"
 #import "PreferencesKeys.h"
 #import <pqrs/weakify.h>
+// @import Foundation;
+// @import IOKit;
+
+// CF_EXPORT CFTypeRef MTActuatorCreateFromDeviceID(UInt64 arg0);
+// CF_EXPORT IOReturn MTActuatorOpen(CFTypeRef actuatorRef);
+// CF_EXPORT IOReturn MTActuatorClose(CFTypeRef actuatorRef);
+// CF_EXPORT IOReturn MTActuatorActuate(CFTypeRef actuatorRef, SInt32 actuationID, int unknown1, float unknown2, float unknown3);
+// CF_EXPORT bool MTActuatorIsOpen(CFTypeRef actuatorRef);
+
+// static void release(CFTypeRef *typeRefRef) {
+//     CFTypeRef typeRef = *typeRefRef;
+//     if (typeRef) {
+//         CFRelease(typeRef);
+//     }
+// }
 
 @interface FingerStatusManager ()
 
@@ -43,6 +59,7 @@
     //
     // Update physical touched fingers
     //
+    //CFTypeRef actuatorRef __attribute__((cleanup(release))) = MTActuatorCreateFromDeviceID(0x200000001000000);
 
     for (int i = 0; i < fingers; ++i) {
       int identifier = data[i].identifier;
@@ -51,6 +68,17 @@
       //   4: touched
       //   1-3,5-7: near
       BOOL touched = NO;
+      // NSLog(@"state %i", data[i].state);
+      // NSLog(@"fingerId %i", data[i].fingerId);
+      // NSLog(@"handId %i", data[i].handId);
+      // NSLog(@"size %f", data[i].size);
+      // NSLog(@"pressure %i ", data[i].pressure);
+      // NSLog(@"zDensity %f", data[i].zDensity);
+      // if(data[i].size > 3.0) {
+      //   MTActuatorActuate(actuatorRef, 4, 0, 0.0, 2.0);
+      // } else {
+      //   MTActuatorClose(actuatorRef);
+      // }
       if (data[i].state == 4) {
         touched = YES;
       } else {
@@ -67,6 +95,9 @@
         }
       }
 
+      e.state = data[i].state;
+      e.size = data[i].size;
+      e.pressure = data[i].pressure;
       e.frame = frame;
       e.point = NSMakePoint(data[i].normalized.position.x, data[i].normalized.position.y);
 
@@ -195,9 +226,13 @@
   }
 }
 
-- (FingerCount*)createFingerCount {
+- (MTInteractionCount*)createMTInteractionCount {
   @synchronized(self) {
-    FingerCount* fingerCount = [FingerCount new];
+    MTInteractionCount* mtInteractionCount = [MTInteractionCount new];
+
+    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+    double palmThreshold = 2.0;
+    palmThreshold = [defaults doubleForKey:kPalmSizeBeforeTurnOn];
 
     for (FingerStatusEntry* e in self.entries) {
       if (e.ignored) {
@@ -208,22 +243,45 @@
         continue;
       }
 
+      NSLog(@"%f", palmThreshold);
+      if (e.size > palmThreshold) {
+        // NSLog(@"TRIGGERED");
+        // [[NSHapticFeedbackManager defaultPerformer] 
+        //   performFeedbackPattern:NSHapticFeedbackPatternGeneric 
+        //   performanceTime:NSHapticFeedbackPerformanceTimeNow];
+        if (e.point.x < 0.5) {
+          ++mtInteractionCount.leftHalfAreaPalmCount;
+        } else {
+          ++mtInteractionCount.rightHalfAreaPalmCount;
+        }
+
+        if (e.point.y < 0.5) {
+          ++mtInteractionCount.lowerHalfAreaPalmCount;
+        } else {
+          ++mtInteractionCount.upperHalfAreaPalmCount;
+        }     
+
+        ++mtInteractionCount.totalPalmCount;
+      }
+              NSLog(@"size %f", e.size);
+        NSLog(@"pressure %i ", e.pressure);
+
       if (e.point.x < 0.5) {
-        ++fingerCount.leftHalfAreaCount;
+        ++mtInteractionCount.leftHalfAreaFingerCount;
       } else {
-        ++fingerCount.rightHalfAreaCount;
+        ++mtInteractionCount.rightHalfAreaFingerCount;
       }
 
       if (e.point.y < 0.5) {
-        ++fingerCount.lowerHalfAreaCount;
+        ++mtInteractionCount.lowerHalfAreaFingerCount;
       } else {
-        ++fingerCount.upperHalfAreaCount;
+        ++mtInteractionCount.upperHalfAreaFingerCount;
       }
 
-      ++fingerCount.totalCount;
+      ++mtInteractionCount.totalFingerCount;
     }
 
-    return fingerCount;
+    return mtInteractionCount;
   }
 }
 

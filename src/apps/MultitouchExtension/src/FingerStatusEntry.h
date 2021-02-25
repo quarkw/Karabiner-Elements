@@ -23,6 +23,9 @@ enum FingerStatusEntryTimerMode {
 //
 
 @property int frame;
+@property int state;
+@property float size;
+@property int pressure;
 @property NSPoint point;
 @property BOOL touchedPhysically;
 @property BOOL touchedFixed;
